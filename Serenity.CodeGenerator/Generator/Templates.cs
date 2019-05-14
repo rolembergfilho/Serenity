@@ -62,7 +62,7 @@ namespace Serenity.CodeGenerator
             }
             catch (InvalidOperationException ex)
             {
-                throw new Exception("Template Has Errors: " + Environment.NewLine +
+                throw new Exception("Template Has Errors: " + templateKey + Environment.NewLine +
                     string.Join(Environment.NewLine, template.Messages.Select(x => x.ToString())), ex);
             }
         }

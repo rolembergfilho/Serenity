@@ -55,5 +55,11 @@
         {
             get { return IsValueType ? DataType + "?" : DataType; }
         }
+
+        // ROLEMBERG FILHO - campos novos
+        public string FieldDescription { get; set; }
+        public string attrsLookupEditorForm { get; set; }
+        public string attrsFileUpload { get; set; }
+
     }
 }

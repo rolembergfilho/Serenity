@@ -11,28 +11,37 @@ namespace {{RootNamespace}}{{DotModule}}.Entities
 
     [ConnectionKey("{{ConnectionKey}}"){{if Module}}, Module("{{Module}}"){{end}}, TableName("{{SchemaAndTable}}")]
     [DisplayName("{{Title}}"), InstanceName("{{Title}}")]
-    [ReadPermission("{{Permission}}")]
-    [ModifyPermission("{{Permission}}")]
+    [ReadPermission("{{Module}}:{{ClassName}}:Read")]
+    [InsertPermission("{{Module}}:{{ClassName}}:Insert")]
+    [UpdatePermission("{{Module}}:{{ClassName}}:Update")]
+    [DeletePermission("{{Module}}:{{ClassName}}:Delete")]
+    [LookupScript("{{Module}}.{{ClassName}}")]
     public sealed class {{RowClassName}} : {{RowBaseClassAndInterfaces}}
     {
+
 {{-for x in Fields}}
+        #region {{x.Title}}
         [{{x.Attributes}}]
-        public {{x.PropertyType}} {{x.Ident}}
-        {
-            get { return Fields.{{x.Ident}}[this]; }
-            set { Fields.{{x.Ident}}[this] = value; }
-        }
+        {{-if !x.attrsLookupEditorForm.empty?}} [{{x.attrsLookupEditorForm}}]{{end}}
+        {{-if !x.attrsFileUpload.empty?}} {{x.attrsFileUpload}}{{end}}
+        public {{x.PropertyType}} {{x.Ident}} { get { return Fields.{{x.Ident}}[this]; } set { Fields.{{x.Ident}}[this] = value; } }
+        public partial class RowFields { public {{x.FieldType}}Field {{x.Ident}}; }
+        #endregion {{x.Title}}
 {{end}}
+
+        #region Foreign Fields
 {{-for j in Joins}}
 {{-for k in j.Fields}}
+        #region FK - {{k.Title}}
         [{{k.Attributes}}]
-        public {{k.PropertyType}} {{k.Ident}}
-        {
-            get { return Fields.{{k.Ident}}[this]; }
-            set { Fields.{{k.Ident}}[this] = value; }
-        }
+        public {{k.PropertyType}} {{k.Ident}} { get { return Fields.{{k.Ident}}[this]; } set { Fields.{{k.Ident}}[this] = value; } }
+        public partial class RowFields { public {{k.FieldType}}Field {{k.Ident}}; }
+        #endregion FK - {{k.Title}}
 {{end}}
 {{-end}}
+        #endregion Foreign Fields
+
+        #region Id and Name fields
 {{-if Identity}}
         IIdField IIdRow.IdField
         {
@@ -45,23 +54,21 @@ namespace {{RootNamespace}}{{DotModule}}.Entities
             get { return Fields.{{NameField}}; }
         }
 {{end}}
+        #endregion Id and Name fields
+
+        #region Constructor
         public static readonly RowFields Fields = new RowFields().Init();
 
         public {{RowClassName}}()
             : base(Fields)
         {
         }
+        #endregion Constructor
 
-        public class RowFields : {{FieldsBaseClass}}
+        #region RowFields
+        public partial class RowFields : {{FieldsBaseClass}}
         {
-{{-for x in Fields}}
-            public {{x.FieldType}}Field {{x.Ident}};
-{{-end}}
-{{-for j in Joins}}
-{{for k in j.Fields}}
-            public {{k.FieldType}}Field {{k.Ident}};
-{{-end}}
-{{-end}}
         }
+        #endregion RowFields
     }
 }

@@ -142,6 +142,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Helpers\CodeFileHelper.cs" />
+    <Compile Include="Helpers\ToolsHelper.cs" />
     <Compile Include="Models\TableItem.cs" />
     <Compile Include="Generator\GeneratorConfig.cs" />
     <EmbeddedResource Include="..\Serenity.CodeGenerator\Templates\Columns.scriban">
@@ -258,6 +259,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.Serenity.CodeGenerator.Net45.config" />
+    <EmbeddedResource Include="Templates\EditorDialog.scriban" />
+    <EmbeddedResource Include="Templates\EditorGrid.scriban" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

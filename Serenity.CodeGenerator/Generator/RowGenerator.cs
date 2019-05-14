@@ -69,7 +69,7 @@ namespace Serenity.CodeGenerator
             return "any";
         }
 
-        private static EntityField ToEntityField(FieldInfo fieldInfo, int prefixLength)
+        private static EntityField ToEntityField(FieldInfo fieldInfo, int prefixLength, GeneratorConfig config)
         {
             string flags;
             if (fieldInfo.IsIdentity)
@@ -93,7 +93,14 @@ namespace Serenity.CodeGenerator
                 IsValueType = fieldType != "String" && fieldType != "Stream" && fieldType != "ByteArray",
                 TSType = FieldTypeToTS(fieldType),
                 Ident = GenerateVariableName(fieldInfo.FieldName.Substring(prefixLength)),
-                Title = Inflector.Inflector.Titleize(fieldInfo.FieldName.Substring(prefixLength)),
+
+                //ROLEMBERG FILHO - trata o Tilte de acordo com as regras de AcertaPalavras
+                //Title = Inflector.Inflector.Titleize(fieldInfo.FieldName.Substring(prefixLength)),
+                Title = config.ReplaceStringinDisplayName ? ToolsHeper.AcertaPalavra(Inflector.Inflector.Titleize(fieldInfo.FieldName.Substring(prefixLength))) :
+                                     Inflector.Inflector.Titleize(fieldInfo.FieldName.Substring(prefixLength)),
+                //ROLEMBERG FILHO - trata o Tilte de acordo com as regras de AcertaPalavras
+
+
                 Flags = flags,
                 Name = fieldInfo.FieldName,
                 Size = fieldInfo.Size == 0 ? (Int32?)null : fieldInfo.Size,
@@ -224,7 +231,7 @@ namespace Serenity.CodeGenerator
                 {
                     if (baseRowFieldset.Contains(f.FieldName.Substring(prefix)))
                     {
-                        var ef = ToEntityField(f, prefix);
+                        var ef = ToEntityField(f, prefix, config);
                         ef.Flags = null;
                         model.RowBaseFields.Add(ef);
                         return false;
@@ -243,7 +250,7 @@ namespace Serenity.CodeGenerator
 
             foreach (var field in fields)
             {
-                var f = ToEntityField(field, prefix);
+                var f = ToEntityField(field, prefix, config);
 
                 if (f.Ident == model.IdField)
                     f.ColAttributes = "EditLink, DisplayName(\"Db.Shared.RecordId\"), AlignRight";
@@ -260,6 +267,11 @@ namespace Serenity.CodeGenerator
                     model.NameField = f.Name;
                     f.ColAttributes = f.ColAttributes ?? "EditLink";
                 }
+
+                //ROLEMBERG FILHO - se for decimal, coloca máscara para tratar valor
+                if (f.DataType == "Decimal")
+                    f.ColAttributes += "DisplayFormat(\"#,##0.00\"), AlignRight";
+                //ROLEMBERG FILHO - se for decimal, coloca máscara para tratar valor
 
                 var foreign = foreigns.Find((k) => k.FKColumn.Equals(field.FieldName, StringComparison.OrdinalIgnoreCase));
                 if (foreign != null)
@@ -288,9 +300,15 @@ namespace Serenity.CodeGenerator
                         if (frg.FieldName.Equals(foreign.PKColumn, StringComparison.OrdinalIgnoreCase))
                             continue;
 
-                        var k = ToEntityField(frg, frgPrefix);
+                        var k = ToEntityField(frg, frgPrefix, config);
                         k.Flags = null;
-                        k.Title = Inflector.Inflector.Titleize(JU(j.Name, frg.FieldName.Substring(frgPrefix)));
+
+                        //ROLEMBERG FILHO - trata o Tilte de acordo com as regras de AcertaPalavras
+                        //k.Title = Inflector.Inflector.Titleize(JU(j.Name, frg.FieldName.Substring(frgPrefix)));
+                        k.Title = config.ReplaceStringinDisplayName ? ToolsHeper.AcertaPalavra(Inflector.Inflector.Titleize(JU(j.Name, frg.FieldName.Substring(frgPrefix)))) :
+                                     Inflector.Inflector.Titleize(JU(j.Name, frg.FieldName.Substring(frgPrefix)));
+                        //ROLEMBERG FILHO - trata o Tilte de acordo com as regras de AcertaPalavras
+
                         k.Ident = JI(j.Name, k.Ident);
                         i = 0;
                         ident = k.Ident;
@@ -330,6 +348,11 @@ namespace Serenity.CodeGenerator
             foreach (var x in model.Fields)
             {
                 var attrs = new List<string>();
+                //ROLEMBERG FILHO - lookup Editor Form
+                var attrsLookupEditorForm = new List<string>();
+                string attrsFileUpload = "";
+                //ROLEMBERG FILHO - lookup Editor Form
+
                 attrs.Add("DisplayName(\"" + x.Title + "\")");
 
                 if (x.Ident != x.Name)
@@ -348,6 +371,11 @@ namespace Serenity.CodeGenerator
                 {
                     attrs.Add("ForeignKey(\"" + (string.IsNullOrEmpty(x.PKSchema) ? x.PKTable : ("[" + x.PKSchema + "].[" + x.PKTable + "]")) + "\", \"" + x.PKColumn + "\")");
                     attrs.Add("LeftJoin(\"j" + x.ForeignJoinAlias + "\")");
+
+                    //ROLEMBERG FILHO - trata o LOOKUPEDITOR
+                    attrsLookupEditorForm.Add("LookupEditor(typeof(" + model.Module + ".Entities." + Serenity.CodeGenerator.RowGenerator.ClassNameFromTableName(x.PKTable) + "Row), InplaceAdd = true)");
+                    //ROLEMBERG FILHO - trata o LOOKUPEDITOR
+
                 }
 
                 if (model.NameField == x.Ident)
@@ -356,7 +384,32 @@ namespace Serenity.CodeGenerator
                 if (x.TextualField != null)
                     attrs.Add("TextualField(\"" + x.TextualField + "\")");
 
+                //ROLEMBERG FILHO - trata o PLACEHOLDER e ADVANCED TIPS
+                //if (config.FieldDescriptionasPlaceholder)
+                //{
+                if (!string.IsNullOrEmpty(x.FieldDescription))
+                    if (x.DataType == "Boolean")
+                        attrs.Add("Hint(\"" + x.FieldDescription + "\")");
+                    else
+                        attrs.Add("Placeholder(\"" + x.FieldDescription + "\")");
+                //}
+
+                //if (config.GenerateRowswithAdvancedTips)
+                //{
+                string attr = processAdvancedTips(x);
+
+                if (!string.IsNullOrEmpty(attr))
+                    attrs.Add(attr);
+                //}
+
+                attrsFileUpload = processAdvancedTips_Image_File(x, model.Tablename);
+
+                //ROLEMBERG FILHO - trata o PLACEHOLDER e ADVANCED TIPS
+
                 x.Attributes = String.Join(", ", attrs.ToArray());
+                x.attrsLookupEditorForm = String.Join(", ", attrsLookupEditorForm.ToArray());
+                x.attrsFileUpload = attrsFileUpload;
+
             }
 
             return model;
@@ -409,6 +462,69 @@ namespace Serenity.CodeGenerator
                     sb.Append(c);
             }
             return sb.ToString();
+        }
+
+        //ROLEMBERG - process Advanced Tips
+        private static string processAdvancedTips(Serenity.CodeGenerator.EntityField x)
+        {
+            string DateTimeField = "";
+            if (x.DataType == "Date")
+            {
+                DateTimeField = "DateEditor";
+            }
+
+            if (x.DataType == "Time")
+            {
+                DateTimeField = "TimeEditor";
+            }
+
+            if (x.DataType == "DateTime")
+            {
+                DateTimeField = "DateTimeEditor";
+            }
+
+            if ((x.DataType == "DateTime") || (x.DataType == "Date"))
+            {
+                if ((x.Ident.ToUpper().Contains("CADASTRO")) || (x.Ident.ToUpper().Contains("INSERT")))
+                {
+                    DateTimeField = "ReadOnly(true), DefaultValue(\"now\"), Updatable(false), " + DateTimeField;
+                }
+
+                if ((x.Ident.ToUpper().Contains("ATUALIZACAO")) || (x.Ident.ToUpper().Contains("UPDATE")))
+                {
+                    DateTimeField = "ReadOnly(true), " + DateTimeField;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(DateTimeField))
+                return DateTimeField;
+
+            if ((x.DataType == "String") && ((x.Size ?? 0) >= 200) &&
+                ((!x.Ident.ToUpper().Contains("ARQUIVO")) || (!x.Ident.ToUpper().Contains("FOTO"))))
+            {
+                return "TextAreaEditor(Rows = 4)";
+            }
+            return "";
+        }
+
+        private static string processAdvancedTips_Image_File(Serenity.CodeGenerator.EntityField x, string tableName)
+        {
+            if ((x.DataType == "String") && (x.Ident.ToUpper().Contains("FOTO")))
+            {
+                string strMultiple = "";
+                if (x.Ident.ToUpper().Contains("FOTOS"))
+                    strMultiple = "Multiple";
+                return "[" + strMultiple + "ImageUploadEditor(AllowNonImage = true, FilenameFormat = \"" + tableName + "/" + x.Ident + "/~\")]";
+            }
+
+            if ((x.DataType == "String") && (x.Ident.ToUpper().Contains("ARQUIVO")))
+            {
+                string strMultiple = "";
+                if (x.Ident.ToUpper().Contains("ARQUIVOS"))
+                    strMultiple = "Multiple";
+                return "[" + strMultiple + "FileUploadEditor(AllowNonImage = true, FilenameFormat = \"" + tableName + "/" + x.Ident + "/~\")]    //, OriginalNameProperty = \"" + x.Ident + "Nome\")]";
+            }
+            return "";
         }
     }
 }

@@ -26,6 +26,17 @@ namespace Serenity.CodeGenerator
         public bool GenerateUI { get; set; }
         public bool GenerateCustom { get; set; }
 
+        //ROLEMBERG FILHO - GENERATE CONFIG
+        //public bool GenerateGridEditor { get; set; }
+        //public bool GenerateGridEditorDialog { get; set; }
+        public bool GenerateLookupEditor { get; set; }
+        public bool MaximizableDialog { get; set; }
+        public bool FieldDescriptionasPlaceholder { get; set; }
+        public bool ReplaceStringinDisplayName { get; set; }
+        public string DefaultLanguage { get; set; }
+        public bool GenerateRowswithAdvancedTips { get; set; }
+        //ROLEMBERG FILHO - GENERATE CONFIG
+
         public GeneratorConfig()
         {
             Connections = new List<Connection>();
@@ -38,6 +49,16 @@ namespace Serenity.CodeGenerator
             GenerateService = true;
             GenerateUI = true;
             GenerateCustom = true;
+
+            //ROLEMBERG FILHO - GENERATE CONFIG
+            GenerateLookupEditor = true;
+            MaximizableDialog = true;
+            FieldDescriptionasPlaceholder = true;
+            ReplaceStringinDisplayName = true;
+            DefaultLanguage = null;
+            GenerateRowswithAdvancedTips = true;
+            //ROLEMBERG FILHO - GENERATE CONFIG
+
             SetDefaults();
         }
 

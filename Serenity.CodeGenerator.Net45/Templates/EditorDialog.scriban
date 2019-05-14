@@ -1,0 +1,13 @@
+/// <reference path="../../Common/Helpers/GridEditorDialog.ts" />
+
+namespace {{RootNamespace}}{{DotModule}} {
+    
+    @Serenity.Decorators.registerClass()
+    @Serenity.Decorators.responsive()
+    export class {{ClassName}}EditorDialog extends Common.GridEditorDialog<{{ClassName}}Row> {
+        protected getFormKey() { return {{ClassName}}Form.formKey; }
+        protected getLocalTextPrefix() { return {{ClassName}}Row.localTextPrefix; }
+        protected getNameProperty() { return {{ClassName}}Row.nameProperty; }
+        protected form = new {{ClassName}}Form(this.idPrefix);
+    }
+}

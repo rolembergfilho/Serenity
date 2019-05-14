@@ -67,6 +67,12 @@ namespace Serenity.CodeGenerator
                 CreateFile(Templates.Render("Dialog", model), moduleClass + "Dialog.ts");
                 CreateFile(Templates.Render("Grid", model), moduleClass + "Grid.ts");
                 CreateFile(Templates.Render("FormTyping", model), typingClass + "Form.ts", serverTypingsTT);
+
+                //ROLEMBERG FILHO - já cria os editor GRID e DIALOG
+                CreateFile(Templates.Render("EditorDialog", model), moduleClass + "EditorDialog.ts", serverTypingsTT);
+                CreateFile(Templates.Render("EditorGrid", model), moduleClass + "EditorGrid.ts", serverTypingsTT);
+                //ROLEMBERG FILHO - já cria os editor GRID e DIALOG
+
                 GenerateNavigationLink();
                 GenerateStyle();
             }
