@@ -130,6 +130,15 @@ namespace Serenity.CodeGenerator
             model.Fields = new List<EntityField>();
             model.Joins = new List<EntityJoin>();
             model.Instance = true;
+            model.DialogAttributes = new DialogAttributes();                   /*ROLEMBERG FILHO*/
+            model.DialogAttributes.Attrs01 = new List<string>();               /*ROLEMBERG FILHO*/
+            model.DialogAttributes.Attrs02 = new List<string>();               /*ROLEMBERG FILHO*/
+            model.DialogAttributes.Attrs03 = new List<string>();               /*ROLEMBERG FILHO*/
+            model.DialogAttributes.AttrsConstructor = new List<string>();      /*ROLEMBERG FILHO*/
+            model.DialogAttributes.AttrsValidacao = new List<string>();        /*ROLEMBERG FILHO*/
+            //model.DialogAttributes.AttrsConfirmSave = new List<string>();      /*ROLEMBERG FILHO*/
+            //model.DialogAttributes.Attrs03 = processAdvancedTips_Model(ref model); /*ROLEMBERG FILHO*/
+            processAdvancedTips_Model(ref model); /*ROLEMBERG FILHO*/
 
             var schemaProvider = SchemaHelper.GetSchemaProvider(connection.GetDialect().ServerType);
             var fields = schemaProvider.GetFieldInfos(connection, tableSchema, table).ToList();
@@ -268,10 +277,9 @@ namespace Serenity.CodeGenerator
                     f.ColAttributes = f.ColAttributes ?? "EditLink";
                 }
 
-                //ROLEMBERG FILHO - se for decimal, coloca máscara para tratar valor
-                if (f.DataType == "Decimal")
-                    f.ColAttributes += "DisplayFormat(\"#,##0.00\"), AlignRight";
-                //ROLEMBERG FILHO - se for decimal, coloca máscara para tratar valor
+                //ROLEMBERG FILHO - processa advanced tips para COLUNAS
+                f.ColAttributes += processAdvancedTips_Columns(f);
+                //ROLEMBERG FILHO - processa advanced tips para COLUNAS
 
                 var foreign = foreigns.Find((k) => k.FKColumn.Equals(field.FieldName, StringComparison.OrdinalIgnoreCase));
                 if (foreign != null)
@@ -350,7 +358,6 @@ namespace Serenity.CodeGenerator
                 var attrs = new List<string>();
                 //ROLEMBERG FILHO - lookup Editor Form
                 var attrsLookupEditorForm = new List<string>();
-                string attrsFileUpload = "";
                 //ROLEMBERG FILHO - lookup Editor Form
 
                 attrs.Add("DisplayName(\"" + x.Title + "\")");
@@ -402,14 +409,14 @@ namespace Serenity.CodeGenerator
                     attrs.Add(attr);
                 //}
 
-                attrsFileUpload = processAdvancedTips_Image_File(x, model.Tablename);
-
                 //ROLEMBERG FILHO - trata o PLACEHOLDER e ADVANCED TIPS
 
                 x.Attributes = String.Join(", ", attrs.ToArray());
-                x.attrsLookupEditorForm = String.Join(", ", attrsLookupEditorForm.ToArray());
-                x.attrsFileUpload = attrsFileUpload;
-
+                x.AttrsLookupEditorForm = String.Join(", ", attrsLookupEditorForm.ToArray());
+                x.AttrsFileUpload = processAdvancedTips_Image_File(x, model.Tablename);
+                x.FormAttributes = processAdvancedTips_Forms(x);
+                //x.DialogAttributes = processAdvancedTips_Dialog(x, model.RootNamespace);
+                processAdvancedTips_Dialog(x, ref model);
             }
 
             return model;
@@ -526,5 +533,179 @@ namespace Serenity.CodeGenerator
             }
             return "";
         }
+
+        private static string processAdvancedTips_Columns(Serenity.CodeGenerator.EntityField x)
+        {
+            if (x.DataType == "Decimal")
+                return "DisplayFormat(\"#,##0.00\"), AlignRight";
+            return "";
+        }
+
+        private static string processAdvancedTips_Forms(Serenity.CodeGenerator.EntityField x)
+        {
+            //if (x.DataType == "Decimal")
+            //    return "DisplayFormat(\"#,##0.00\"), AlignRight";
+
+            if ((x.DataType == "String") && (x.Ident.ToUpper().Contains("MAIL")))
+            {
+                return "EmailEditor";
+            }
+            if ((x.DataType == "String") && (x.Ident.ToUpper().Contains("TELEFONE")))
+            {
+                return "MaskedEditor(Mask = \"(99)9999-9999\")";
+            }
+            if ((x.DataType == "String") && (x.Ident.ToUpper().Contains("CPF")))
+            {
+                return "MaskedEditor(Mask = \"999.999.999-99\")";
+            }
+            if ((x.DataType == "String") && (x.Ident.ToUpper().Contains("CNPJ")))
+            {
+                return "MaskedEditor(Mask = \"99.999.999/9999-99\")";
+            }
+            return "";
+        }
+
+        private static DialogAttributes processAdvancedTips_Dialog(Serenity.CodeGenerator.EntityField x, ref EntityModel m)
+        {
+            //DialogAttributes m.DialogAttributes = new DialogAttributes();
+            //m.DialogAttributes.Attrs01 = new List<string>();
+            //m.DialogAttributes.Attrs02 = new List<string>();
+            //m.DialogAttributes.AttrsConstructor = new List<string>();
+            //m.DialogAttributes.AttrsValidacao = new List<string>();
+            //m.DialogAttributes.AttrsConfirmSave = new List<string>();
+
+            #region // *** DIALOG PARA CONFIRMAR SE VAI SALVAR OU NÃO ***
+            //m.DialogAttributes.AttrsConfirmSave.Add("            // *** DIALOG PARA CONFIRMAR SE VAI SALVAR OU NÃO ***");
+            //m.DialogAttributes.AttrsConfirmSave.Add("            " + (m.RootNamespace) + "DialogUtils.pendingChangesConfirmation(this.element, () => this.getSaveState() != this.loadedState);");
+            //m.DialogAttributes.AttrsConfirmSave.Add("        }");
+            //m.DialogAttributes.AttrsConfirmSave.Add("");
+            //m.DialogAttributes.AttrsConfirmSave.Add("//INICIO - PROCESSA O CONFIRM SAVE");
+            //m.DialogAttributes.AttrsConfirmSave.Add("        getSaveState() {");
+            //m.DialogAttributes.AttrsConfirmSave.Add("            try { return $.toJSON(this.getSaveEntity()); }");
+            //m.DialogAttributes.AttrsConfirmSave.Add("            catch (e) { return null; }");
+            //m.DialogAttributes.AttrsConfirmSave.Add("        }");
+            //m.DialogAttributes.AttrsConfirmSave.Add("");
+            //m.DialogAttributes.AttrsConfirmSave.Add("        loadResponse(data) {");
+            //m.DialogAttributes.AttrsConfirmSave.Add("            super.loadResponse(data);");
+            //m.DialogAttributes.AttrsConfirmSave.Add("            this.loadedState = this.getSaveState();");
+            //m.DialogAttributes.AttrsConfirmSave.Add("        }");
+            //m.DialogAttributes.AttrsConfirmSave.Add("//FIM - PROCESSA O CONFIRM SAVE");
+            #endregion
+
+            #region MyRegion
+            if ((x.DataType == "DateTime") &&
+            ((x.Ident.ToUpper().Contains("ATUALIZACAO")) || (x.Ident.ToUpper().Contains("UPDATE"))))
+            {
+                m.DialogAttributes.Attrs01.Add("this.form." + x.Ident + ".valueAsDate = new Date();");
+            }
+
+            if ((x.DataType == "Boolean") && ((x.Ident.ToUpper().Contains("ATIVO"))))
+            {
+                m.DialogAttributes.Attrs02.Add("//if (this.form." + x.Ident + ".value == true)");
+                m.DialogAttributes.Attrs02.Add("//{");
+                m.DialogAttributes.Attrs02.Add("//    this.form.ALGUMCAMPO.getGridField().toggle(true);");
+                m.DialogAttributes.Attrs02.Add("//}");
+            }
+
+            if ((x.DataType == "Boolean") && ((x.Ident.ToUpper().Contains("ATIVO"))))
+            {
+                m.DialogAttributes.AttrsConstructor.Add("//// *** INICIO - CHECKBOX CHANGE - " + x.Ident + " ***");
+                m.DialogAttributes.AttrsConstructor.Add("//this.form." + x.Ident + ".change(e => {");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//    if (this.form." + x.Ident + ".value == true) {");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//        var isChecked = false;");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//        Q.confirm(\"Confirma a seleção ?\", ");
+                m.DialogAttributes.AttrsConstructor.Add("//            () => {");
+                m.DialogAttributes.AttrsConstructor.Add("//                isChecked = true;");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//                //var texto = this.form.ALGUMCAMPO.getGridField().find('.caption').prop('outerHTML').split('Nome').join('TEXTO NOVO');");
+                m.DialogAttributes.AttrsConstructor.Add("//                //this.form.ALGUMCAMPO.getGridField().find('.caption').prop('outerHTML', texto);");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//                this.form." + x.Ident + ".value = isChecked;");
+                m.DialogAttributes.AttrsConstructor.Add("//                this.form.ALGUMCAMPO.getGridField().toggle(true);");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//                this.form.ALGUMCAMPO.value = null;");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//            }");
+                m.DialogAttributes.AttrsConstructor.Add("//        );");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//        this.form." + x.Ident + ".value = isChecked;");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//      }");
+                m.DialogAttributes.AttrsConstructor.Add("//      else {");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//          var isChecked = true;");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//          Q.confirm(\"Confirma a exclusão ?\\nOs dados existentes serão descartados.\", ");
+                m.DialogAttributes.AttrsConstructor.Add("//              () => {");
+                m.DialogAttributes.AttrsConstructor.Add("//              isChecked = false;");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//                  this.form." + x.Ident + ".value = isChecked;");
+                m.DialogAttributes.AttrsConstructor.Add("//                  this.form.ALGUMCAMPO.getGridField().toggle(false);");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//            }");
+                m.DialogAttributes.AttrsConstructor.Add("//        );");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//        this.form." + x.Ident + ".value = isChecked;");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("//    }");
+                m.DialogAttributes.AttrsConstructor.Add("//});");
+                m.DialogAttributes.AttrsConstructor.Add("//// *** FIM - CHECKBOX CHANGE - NotaFiscalTerceiro ***");
+                m.DialogAttributes.AttrsConstructor.Add("//");
+                m.DialogAttributes.AttrsConstructor.Add("");
+                m.DialogAttributes.AttrsConstructor.Add("");
+            }
+
+            if ((x.DataType == "String") && ((x.Ident.ToUpper().Contains("CNPJ"))))
+                m.DialogAttributes.AttrsValidacao.Add(m.RootNamespace + ".addValidationRule_CNPJ(this.form." + x.Ident + ");");
+
+            if ((x.DataType == "String") && ((x.Ident.ToUpper().Contains("CPF"))))
+                m.DialogAttributes.AttrsValidacao.Add(m.RootNamespace + ".addValidationRule_CPF(this.form." + x.Ident + ");");
+            #endregion
+
+            return m.DialogAttributes;
+        }
+
+        private static void processAdvancedTips_Model(ref Serenity.CodeGenerator.EntityModel m)
+        {
+
+            switch (m.ClassName.ToUpper())
+            {
+                case "PACIENTES":
+                case "CONVENIOS":
+                case "PROFISSIONAIS":
+                case "FORNECEDOR":
+                    var attr = new List<string>();
+                    m.DialogAttributes.Attrs03.Add("			//// passa o nome do form do " + m.ClassName + " (controle interno de CONTATOS )");
+                    m.DialogAttributes.Attrs03.Add("			//this.form.ContatosList.myParentForm = " + m.ClassName + ";");
+                    break;
+
+                default:
+                    break;
+            }
+
+            #region // *** DIALOG PARA CONFIRMAR SE VAI SALVAR OU NÃO ***
+            m.DialogAttributes.AttrsConfirmSave.Add("    // *** DIALOG PARA CONFIRMAR SE VAI SALVAR OU NÃO ***");
+            m.DialogAttributes.AttrsConfirmSave.Add("            " + (m.RootNamespace) + ".DialogUtils.pendingChangesConfirmation(this.element, () => this.getSaveState() != this.loadedState);");
+            m.DialogAttributes.AttrsConfirmSave.Add("        }");
+            m.DialogAttributes.AttrsConfirmSave.Add("");
+            m.DialogAttributes.AttrsConfirmSave.Add("        //INICIO - PROCESSA O CONFIRM SAVE");
+            m.DialogAttributes.AttrsConfirmSave.Add("        getSaveState() {");
+            m.DialogAttributes.AttrsConfirmSave.Add("            try { return $.toJSON(this.getSaveEntity()); }");
+            m.DialogAttributes.AttrsConfirmSave.Add("            catch (e) { return null; }");
+            m.DialogAttributes.AttrsConfirmSave.Add("        }");
+            m.DialogAttributes.AttrsConfirmSave.Add("");
+            m.DialogAttributes.AttrsConfirmSave.Add("        loadResponse(data) {");
+            m.DialogAttributes.AttrsConfirmSave.Add("            super.loadResponse(data);");
+            m.DialogAttributes.AttrsConfirmSave.Add("            this.loadedState = this.getSaveState();");
+            m.DialogAttributes.AttrsConfirmSave.Add("        }");
+            m.DialogAttributes.AttrsConfirmSave.Add("        //FIM - PROCESSA O CONFIRM SAVE");
+            #endregion
+
+        }
+
+
     }
 }

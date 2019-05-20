@@ -168,7 +168,7 @@ namespace Serenity.CodeGenerator
                 }
             }
         }
-       
+
         private void Changed(string property)
         {
             if (PropertyChanged != null)
@@ -282,7 +282,7 @@ namespace Serenity.CodeGenerator
                 }
             }
         }
-                
+
         public string KDiff3Path
         {
             get { return config.KDiff3Path; }
@@ -387,8 +387,44 @@ namespace Serenity.CodeGenerator
                         connection.Open();
 
                         var schemaProvider = SchemaHelper.GetSchemaProvider(connection.GetDialect().ServerType);
-                        foreach (var t in schemaProvider.GetTableNames(connection))
+                        //foreach (var t in schemaProvider.GetTableNames(connection))
+                        List<Data.Schema.TableName> excluiTabelas = new List<Data.Schema.TableName>();
+                        excluiTabelas.Add(new Data.Schema.TableName() { Table = "EXCEPTIONS" });
+                        excluiTabelas.Add(new Data.Schema.TableName() { Table = "LANGUAGES" });
+                        excluiTabelas.Add(new Data.Schema.TableName() { Table = "ROLEPERMISSIONS" });
+                        excluiTabelas.Add(new Data.Schema.TableName() { Table = "ROLES" });
+                        excluiTabelas.Add(new Data.Schema.TableName() { Table = "USERPERMISSIONS" });
+                        excluiTabelas.Add(new Data.Schema.TableName() { Table = "USERPREFERENCES" });
+                        excluiTabelas.Add(new Data.Schema.TableName() { Table = "USERROLES" });
+                        excluiTabelas.Add(new Data.Schema.TableName() { Table = "USERS" });
+                        excluiTabelas.Add(new Data.Schema.TableName() { Table = "VERSIONINFO" });
+
+                        //foreach (var t in schemaProvider.GetTableNames(connection).Where(x => x.Table != "Exceptions"))
+                        foreach (var t in schemaProvider.GetTableNames(connection).Where(x => !excluiTabelas.Any(t => t.Table == x.Table.ToUpper())))   
                         {
+                            //INICIO - ROLEMBERG FILHO - NÃO MOSTRA AS TABELAS PADRÃO DO SERENITY !!!
+                            //switch (t.Table.ToUpper())
+                            //{
+                            //    case "EXCEPTIONS":
+                            //    case "LANGUAGES":
+                            //    case "ROLEPERMISSIONS":
+                            //    case "ROLES":
+                            //    case "USERPERMISSIONS":
+                            //    case "USERPREFERENCES":
+                            //    case "USERROLES":
+                            //    case "USERS":
+                            //    case "VERSIONINFO":
+                            //        // TABELAS PADRÃO DO SERENITY. NÃO MOSTRA NO SERGEN!!!!
+                            //        continue;
+                            //    default:
+                            //        break;
+                            //}
+                            //FIM - ROLEMBERG FILHO - NÃO MOSTRA AS TABELAS PADRÃO DO SERENITY !!!
+
+
+
+
+
                             var table = conn != null ? conn.Tables.FirstOrDefault(x => x.Tablename == t.Tablename) : null;
                             var identifier = (table == null || table.Identifier.IsEmptyOrNull()) ?
                                 RowGenerator.ClassNameFromTableName(t.Table) : table.Identifier;
@@ -467,7 +503,7 @@ namespace Serenity.CodeGenerator
                 try
                 {
                     EntityModel rowModel;
-                    
+
                     using (var connection = SqlConnections.New(conn.ConnectionString, conn.ProviderName))
                     {
                         connection.Open();

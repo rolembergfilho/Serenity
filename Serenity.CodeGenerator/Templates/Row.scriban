@@ -22,8 +22,8 @@ namespace {{RootNamespace}}{{DotModule}}.Entities
 {{-for x in Fields}}
         #region {{x.Title}}
         [{{x.Attributes}}]
-        {{-if !x.attrsLookupEditorForm.empty?}} [{{x.attrsLookupEditorForm}}]{{end}}
-        {{-if !x.attrsFileUpload.empty?}} {{x.attrsFileUpload}}{{end}}
+        {{-if !x.AttrsLookupEditorForm.empty?}} [{{x.AttrsLookupEditorForm}}]{{end}}
+        {{-if !x.AttrsFileUpload.empty?}} {{x.AttrsFileUpload}}{{end}}
         public {{x.PropertyType}} {{x.Ident}} { get { return Fields.{{x.Ident}}[this]; } set { Fields.{{x.Ident}}[this] = value; } }
         public partial class RowFields { public {{x.FieldType}}Field {{x.Ident}}; }
         #endregion {{x.Title}}

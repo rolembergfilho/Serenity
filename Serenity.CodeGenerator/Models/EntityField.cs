@@ -1,4 +1,6 @@
-﻿namespace Serenity.CodeGenerator
+﻿using System.Collections.Generic;
+
+namespace Serenity.CodeGenerator
 {
     public class EntityField
     {
@@ -58,8 +60,8 @@
 
         // ROLEMBERG FILHO - campos novos
         public string FieldDescription { get; set; }
-        public string attrsLookupEditorForm { get; set; }
-        public string attrsFileUpload { get; set; }
-
+        public string AttrsLookupEditorForm { get; set; }
+        public string AttrsFileUpload { get; set; }
+        public string FormAttributes { get; set; }
     }
 }

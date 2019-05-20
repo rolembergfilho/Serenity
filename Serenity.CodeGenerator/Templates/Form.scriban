@@ -12,7 +12,8 @@ namespace {{RootNamespace}}{{DotModule}}.Forms
     [FormScript("{{ModuleDot}}{{ClassName}}")]
     [BasedOnRow(typeof(Entities.{{RowClassName}}), CheckNames = true)]
     public class {{ClassName}}Form
-    {%{{}%}{{for x in Fields}}{{if x.Ident != IdField}}
+    {%{{}%}{{for x in Fields}}{{if x.Ident != IdField}}{{if x.FormAttributes != ""}}
+        [{{x.FormAttributes}}]{{end}}
         public {{x.DataType}} {{x.Ident}} { get; set; }{{end}}{{end}}
     }
 }

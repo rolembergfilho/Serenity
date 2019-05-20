@@ -1,8 +1,11 @@
 ﻿
 namespace {{RootNamespace}}{{DotModule}} {
 
-    @Serenity.Decorators.registerClass(){{if CustomSettings.MaximizableDialog}}
+    @Serenity.Decorators.registerClass()
+	@Serenity.Decorators.responsive(){{if CustomSettings.MaximizableDialog}}
     @Serenity.Decorators.maximizable(){{end}}
+	//@Serenity.Decorators.panel()
+
     export class {{ClassName}}Dialog extends Serenity.EntityDialog<{{RowClassName}}, any> {
         protected getFormKey() { return {{ClassName}}Form.formKey; }{{if Identity}}
         protected getIdProperty() { return {{RowClassName}}.idProperty; }{{end}}
@@ -11,11 +14,85 @@ namespace {{RootNamespace}}{{DotModule}} {
         protected getService() { return {{ClassName}}Service.baseUrl; }
 
         protected form = new {{ClassName}}Form(this.idPrefix);
+
+        private loadedState: string; /* CONFIRM SAVE*/
 {{if CustomSettings.MaximizableDialog}}
 
         onDialogOpen() {
             super.onDialogOpen();
             this.element.closest(".ui-dialog").find(".ui-icon-maximize-window").click();
         }{{end}}
+
+{{-if (DialogAttributes.AttrsValidacao.size > 0)}}
+        //Adicionado para evitar o disparo da validacao no keyup e limpeza do icone de erro quando o usuario digitar, padroes do plugin jaqueryvalidation utilizado
+        getValidatorOptions() {
+            var opts = super.getValidatorOptions();
+            opts.onkeyup = false;
+            opts.focusCleanup = true;
+            return opts;
+        }{{end}}
+
+        updateTitle() {
+            super.updateTitle();
+            this.dialogTitle = "Novo {{ClassName}}";
+        }
+
+        //INICIO - INSERE BOTÃO DE IMPRESSÃO NA TELA
+		updateInterface() {
+            super.updateInterface();
+            this.toolbar.findButton("print-{{ClassName | string.downcase}}-button").toggleClass('disabled', this.isNew());
+        }
+
+        getToolbarButtons() {
+            var buttons = super.getToolbarButtons();
+            buttons.push({{RootNamespace}}.Common.ReportHelper.createToolButton({
+                title: 'Imprimir',
+                cssClass: 'export-pdf-button print-{{ClassName | string.downcase}}-button disabled',
+                reportKey: '{{ClassName}}.{{ClassName}}Print',
+                extension: 'pdf',
+                getParams: () => ({ {{ClassName}}IdList: [this.get_entityId()] })
+            }));
+            
+            return buttons;
+        }
+        //FIM - INSERE BOTÃO DE IMPRESSÃO NA TELA
+
+		{{-if (DialogAttributes.Attrs01.size > 0) || (DialogAttributes.Attrs02.size > 0) || (DialogAttributes.Attrs03.size > 0)}}
+
+		//INICIO - PROCESSA O COMPORTAMENTO DOS CAMPOS E CHECKBOXES
+        afterLoadEntity() {
+            super.afterLoadEntity();
+
+			{{-if (DialogAttributes.Attrs01.size > 0) || (DialogAttributes.Attrs02.size > 0)}}
+			// se for atualizar o dado, registra a data da atualização
+            if (this.isEditMode()) {
+				{{if (DialogAttributes.Attrs01.size > 0)}}{{DialogAttributes.Attrs01 | array.join "\r\n"}}{{end}}
+
+				{{-if (DialogAttributes.Attrs02.size > 0)}}{{DialogAttributes.Attrs02 | array.join "\r\n"}}{{end}}
+			}
+
+			{{end}}
+			{{if DialogAttributes.Attrs03.size > 0}}{{DialogAttributes.Attrs03 | array.join "\r\n"}}{{end}}
+        }
+
+		{{-end}}
+
+        constructor() {
+
+            super();
+
+            // *** CUSTOM MESSAGE ***
+            //this.customDIV = jQuery("<div style='text-align:center;color:red'>TESTE DE TEXTO EXTRA!</div>");
+            //this.customDIV.appendTo(this.form.Status.element.closest(".field"));
+
+			{{if DialogAttributes.AttrsValidacao.size > 0}}{{DialogAttributes.AttrsValidacao | array.join "\r\n"}}{{end-}}
+			
+			{{if DialogAttributes.AttrsConstructor.size > 0}}{{DialogAttributes.AttrsConstructor | array.join "\r\n"}}{{end}}
+			
+        {{if !DialogAttributes.AttrsConfirmSave.size > 0}} }
+        {{else}}{{DialogAttributes.AttrsConfirmSave | array.join "\r\n"}}{{end}}
+
+		
+		//FIM - PROCESSA O COMPORTAMENTO DOS CAMPOS E CHECKBOXES
     }
 }

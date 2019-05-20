@@ -27,6 +27,7 @@ namespace Serenity.CodeGenerator
 
         public string IdField { get { return Identity; } }
         public Dictionary<string, object> CustomSettings { get; set; }
+        public DialogAttributes DialogAttributes { get; set; } /*ROLEMBERG FILHO*/
 
         public string DotModule
         {
@@ -77,4 +78,32 @@ namespace Serenity.CodeGenerator
             }
         }
     }
+
+    public class DialogAttributes
+    {
+        //public List<string> Attrs01 { get { return this.Attrs01 ?? new List<string>(); } set { this.Attrs01 = value; } }
+        //public List<string> Attrs02 { get { return this.Attrs02 ?? new List<string>(); } set { this.Attrs02 = value; } }
+        //public List<string> AttrsConstructor { get { return this.AttrsConstructor ?? new List<string>(); } set { this.AttrsConstructor = value; } }
+        //public List<string> AttrsValidacao { get { return this.AttrsValidacao ?? new List<string>(); } set { this.AttrsValidacao = value; } }
+        //public List<string> AttrsConfirmSave { get { return this.AttrsConfirmSave ?? new List<string>(); } set { this.AttrsConfirmSave = value; } }
+
+
+        public List<string> Attrs01 { get; set; }
+        public List<string> Attrs02 { get; set; }
+        public List<string> Attrs03 { get; set; }
+        public List<string> AttrsConstructor { get; set; }
+        public List<string> AttrsValidacao { get; set; }
+        public List<string> AttrsConfirmSave { get; set; }
+
+        public DialogAttributes()
+        {
+            Attrs01 = new List<string>();
+            Attrs02 = new List<string>();
+            Attrs03 = new List<string>();
+            AttrsConstructor = new List<string>();
+            AttrsValidacao = new List<string>();
+            AttrsConfirmSave = new List<string>();
+        }
+    }
+
 }

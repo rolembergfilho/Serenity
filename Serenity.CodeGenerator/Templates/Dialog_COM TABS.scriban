@@ -1,0 +1,121 @@
+﻿
+namespace {{RootNamespace}}{{DotModule}} {
+
+    @Serenity.Decorators.registerClass()
+	@Serenity.Decorators.responsive(){{if CustomSettings.MaximizableDialog}}
+    @Serenity.Decorators.maximizable(){{end}}
+	//@Serenity.Decorators.panel()
+
+    export class {{ClassName}}Dialog extends Serenity.EntityDialog<{{RowClassName}}, any> {
+        protected getFormKey() { return {{ClassName}}Form.formKey; }{{if Identity}}
+        protected getIdProperty() { return {{RowClassName}}.idProperty; }{{end}}
+        protected getLocalTextPrefix() { return {{RowClassName}}.localTextPrefix; }{{if NameField}}
+        protected getNameProperty() { return {{RowClassName}}.nameProperty; }{{end}}
+        protected getService() { return {{ClassName}}Service.baseUrl; }
+
+        protected form = new {{ClassName}}Form(this.idPrefix);
+
+        private loadedState: string; /* CONFIRM SAVE*/
+{{if CustomSettings.MaximizableDialog}}
+
+        onDialogOpen() {
+            super.onDialogOpen();
+            this.element.closest(".ui-dialog").find(".ui-icon-maximize-window").click();
+        }{{end}}
+
+{{if (DialogAttributes.AttrsValidacao.Count > 0)}}
+        //Adicionado para evitar o disparo da validacao no keyup e limpeza do icone de erro quando o usuario digitar, padroes do plugin jaqueryvalidation utilizado
+        getValidatorOptions() {
+            var opts = super.getValidatorOptions();
+            opts.onkeyup = false;
+            opts.focusCleanup = true;
+            return opts;
+        }{{end}}
+
+        updateTitle() {
+            super.updateTitle();
+            this.dialogTitle = "Novo {{ClassName}}";
+        }
+
+        //INICIO - INSERE BOTÃO DE IMPRESSÃO NA TELA
+		updateInterface() {
+            super.updateInterface();
+            this.toolbar.findButton("print-{{ClassName | string.downcase}}-button").toggleClass('disabled', this.isNew());
+        }
+
+        getToolbarButtons() {
+            var buttons = super.getToolbarButtons();
+            buttons.push({{RootNamespace}}.Common.ReportHelper.createToolButton({
+                title: 'Imprimir',
+                cssClass: 'export-pdf-button print-{{ClassName | string.downcase}}-button disabled',
+                reportKey: '{{ClassName}}.{{ClassName}}Print',
+                extension: 'pdf',
+                getParams: () => ({ {{ClassName}}IdList: [this.get_entityId()] })
+            }));
+            
+            return buttons;
+        }
+        //FIM - INSERE BOTÃO DE IMPRESSÃO NA TELA
+
+		//INICIO - processamentos de TABS
+        loadEntity(entity: {{ClassName}}Row) {
+            super.loadEntity(entity);
+
+			/*
+			 * AS LINHAS ABAIXOS SÓ SERÃO USADAS EM CASO DE TABS
+			 * OBSERVAR O NOME DOS TABS!!!
+			 */
+            //Serenity.TabsExtensions.setDisabled(this.tabs, 'PacientesConvenios', this.isNewOrDeleted());
+            //Serenity.TabsExtensions.setDisabled(this.tabs, 'PacientesEmissaoNf', this.isNewOrDeleted());
+
+            //this.pacientesconveniosGrid.PacienteId = entity.PacienteId;
+            //this.pacientesemissaonfGrid.PacienteId = entity.PacienteId;
+        }
+
+        onSaveSuccess(response) {
+            super.onSaveSuccess(response);
+
+            Q.reloadLookup('{{Module}}.{{ClassName}}');
+        }
+		//FIM - processamentos de TABS
+
+		//INICIO - PROCESSA O COMPORTAMENTO DOS CAMPOS E CHECKBOXES
+        afterLoadEntity() {
+            super.afterLoadEntity();
+
+            // se for atualizar o dado, registra a data da atualização
+            if (this.isEditMode()) {
+				{{-if (DialogAttributes.Attrs01.Count > 0)}}{{DialogAttributes.Attrs01}}{{end}}
+
+				{{-if (DialogAttributes.Attrs02.Count > 0)}}{{DialogAttributes.Attrs02}}{{end}}
+			}
+
+			{{-if DialogAttributes.Attrs03.Count > 0}}{{DialogAttributes.Attrs03}}{{end}}
+        }
+
+        constructor() {
+
+            super();
+
+            // *** INICIO - TRATAMENTO DOS TABS ***
+            //this.pacientesconveniosGrid = new {{RootNamespace}}.{{Module}}.PacientesPacientesConveniosGrid(this.byId('PacientesConveniosGrid'));
+            //this.pacientesconveniosGrid.element.flexHeightOnly(1);
+            //this.pacientesemissaonfGrid = new {{RootNamespace}}.{{Module}}.PacientesPacientesEmissaoNfGrid(this.byId('PacientesEmissaoNfGrid'));
+            //this.tabs.bind('tabsactivate', () => this.arrange());
+            // *** FIM - TRATAMENTO DOS TABS ***
+
+            // *** CUSTOM MESSAGE ***
+            //this.customDIV = jQuery("<div style='text-align:center;color:red'>TESTE DE TEXTO EXTRA!</div>");
+            //this.customDIV.appendTo(this.form.Status.element.closest(".field"));
+
+			{{-if DialogAttributes.AttrsValidacao.Count > 0}}{{DialogAttributes.AttrsValidacao | array.join "\r\n"}}{{end}}
+			{{-if DialogAttributes.AttrsConstructor.Count > 0}}{{DialogAttributes.AttrsConstructor | array.join "\r\n"}}{{end}}
+            
+
+        {{if !DialogAttributes.AttrsConfirmSave.Count > 0}} }
+        {{else}}{{DialogAttributes.AttrsConfirmSave | array.join "\r\n"}}{{end}}
+
+		
+		//FIM - PROCESSA O COMPORTAMENTO DOS CAMPOS E CHECKBOXES
+    }
+}
