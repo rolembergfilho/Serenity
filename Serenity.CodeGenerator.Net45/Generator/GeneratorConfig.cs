@@ -35,9 +35,10 @@ namespace Serenity.CodeGenerator
         public bool ReplaceStringinDisplayName { get; set; }
         public string DefaultLanguage { get; set; }
         public bool GenerateRowswithAdvancedTips { get; set; }
-        //ROLEMBERG FILHO - GENERATE CONFIG
+        public bool AspNetCore { get; set; }
+		//ROLEMBERG FILHO - GENERATE CONFIG
 
-        public GeneratorConfig()
+		public GeneratorConfig()
         {
             Connections = new List<Connection>();
             KDiff3Path = Path.Combine(Environment.GetFolderPath(
@@ -57,6 +58,7 @@ namespace Serenity.CodeGenerator
             ReplaceStringinDisplayName = true;
             DefaultLanguage = null;
             GenerateRowswithAdvancedTips = true;
+			AspNetCore = true;
             //ROLEMBERG FILHO - GENERATE CONFIG
 
             SetDefaults();

@@ -325,7 +325,23 @@ namespace Serenity.CodeGenerator
             }
         }
 
-        private void AddConnection_Click(object sender, RoutedEventArgs e)
+		//ROLEMBERG FILHO - GERA EM ASPNETCORE
+		public bool AspNetCore
+		{
+			get { return config.AspNetCore; }
+			set
+			{
+				if (value != config.AspNetCore)
+				{
+					config.AspNetCore = value;
+					config.Save();
+					Changed("AspNetCore");
+				}
+			}
+		}
+		//ROLEMBERG FILHO - GERA EM ASPNETCORE
+
+		private void AddConnection_Click(object sender, RoutedEventArgs e)
         {
             var dlg = new AddConnectionStringWindow();
             if (dlg.ShowDialog() == true)
@@ -517,8 +533,10 @@ namespace Serenity.CodeGenerator
 
                         rowModel = RowGenerator.GenerateModel(connection, schema, tableName,
                             table.Module, table.ConnectionKey, table.Identifier, table.PermissionKey, config);
+						
+						rowModel.AspNetCore = config.AspNetCore;
 
-                        var kdiff3Paths = new[]
+					var kdiff3Paths = new[]
                         {
                             config.KDiff3Path,
                             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "KDiff3\\kdiff3.exe"),

@@ -36,6 +36,7 @@
                 <CheckBox HorizontalAlignment="Left" Margin="0 0 10 0" IsChecked="{Binding Path=GenerateService}">Service</CheckBox>
                 <CheckBox HorizontalAlignment="Left" Margin="0 0 10 0" IsChecked="{Binding Path=GenerateUI}">UI</CheckBox>
                 <CheckBox HorizontalAlignment="Left" Margin="0 0 10 0" IsChecked="{Binding Path=GenerateCustom}">Custom</CheckBox>
+                <CheckBox HorizontalAlignment="Left" Margin="0 0 10 0" IsChecked="{Binding Path=AspNetCore}">AspNetCore</CheckBox>
             </DockPanel>
             <DockPanel HorizontalAlignment="Stretch" DockPanel.Dock="Bottom" Margin="0 6 0 0">
                 <DataGrid ItemsSource="{Binding Tables}" AutoGenerateColumns="False" CanUserAddRows="False" GridLinesVisibility="None" RowHeight="20" CanUserResizeRows="False" 
